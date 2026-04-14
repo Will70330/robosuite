@@ -1,0 +1,46 @@
+<mujoco model="tidybot_base">
+    <asset>
+        <material name="tidybot_silver" rgba="0.75294118 0.75294118 0.75294118 1"/>
+        <material name="tidybot_black" rgba="0.30196078 0.30196078 0.30196078 1"/>
+        <mesh name="tidybot_body" file="meshes/tidybot_base/body.stl"/>
+        <mesh name="tidybot_arm_plate" file="meshes/tidybot_base/arm_plate.stl"/>
+    </asset>
+
+    <actuator>
+        <velocity ctrllimited="true" ctrlrange="-1.00 1.00" joint="joint_mobile_forward" kv="1000" name="actuator_mobile_forward" forcelimited="true" forcerange="-600 600"/>
+        <velocity ctrllimited="true" ctrlrange="-1.00 1.00" joint="joint_mobile_side" kv="1000" name="actuator_mobile_side" forcelimited="true" forcerange="-600 600"/>
+        <velocity ctrllimited="true" ctrlrange="-1.50 1.50" joint="joint_mobile_yaw" kv="1000" name="actuator_mobile_yaw" forcelimited="true" forcerange="-600 600"/>
+    </actuator>
+
+    <worldbody>
+        <body name="base" pos="0 0 0">
+            <joint name="joint_mobile_forward" pos="0 0 0" axis="1 0 0" type="slide" limited="false" damping="0" armature="0.0" frictionloss="250"/>
+            <joint name="joint_mobile_side" pos="0 0 0" axis="0 1 0" type="slide" limited="false" damping="0" armature="0.0" frictionloss="250"/>
+            <joint name="joint_mobile_yaw" pos="0 0 0" axis="0 0 1" type="hinge" limited="false" damping="0" armature="0.0" frictionloss="250"/>
+
+            <body name="wheeled_base" pos="0 0 0">
+                <inertial pos="0 0 0.035" mass="60" diaginertia="5.0 5.0 5.0"/>
+                <!-- Visual geometry -->
+                <geom type="mesh" contype="0" conaffinity="0" group="1" mesh="tidybot_body" material="tidybot_silver"/>
+                <geom type="mesh" contype="0" conaffinity="0" group="1" mesh="tidybot_arm_plate" material="tidybot_black"/>
+                <!-- Collision geometry -->
+                <geom type="mesh" group="0" mesh="tidybot_body" name="tidybot_body_collision" density="10"/>
+                <geom type="mesh" group="0" mesh="tidybot_arm_plate" name="tidybot_arm_plate_collision" density="10"/>
+
+                <!-- Camera mount poles (from tidybot_cam_mounts.xml) -->
+                <geom name="side_mount" type="cylinder" pos="-0.02 0.23 0.72" size="0.01 0.35" material="tidybot_silver"/>
+                <geom name="front_mount" type="cylinder" pos="0.25 0.0 0.45" size="0.01 0.09" material="tidybot_silver"/>
+
+                <!-- Base cameras (from tidybot_cam_mounts.xml) -->
+                <camera name="base1" pos="0.28 0.15 0.42" euler="-0.4 -0.6 -2.75" fovy="52" resolution="640 480"/>
+                <camera name="base2" pos="0.28 -0.15 0.42" euler="0.4 -0.6 -0.81" fovy="52" resolution="640 480"/>
+            </body>
+
+            <!-- Arm mount point: at the arm plate position from homer (0.1199, 0, 0.3948) -->
+            <body name="support" pos="0.1199 0 0.3948">
+                <site name="center" type="sphere" pos="0 0 0" size="0.01" group="1" rgba="0 0 0 0"/>
+                <!-- arm gets mounted here by add_mobile_base -->
+            </body>
+        </body>
+    </worldbody>
+</mujoco>

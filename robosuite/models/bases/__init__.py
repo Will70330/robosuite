@@ -15,6 +15,7 @@ from .no_actuation_base import NoActuationBase
 from .floating_legged_base import FloatingLeggedBase
 from .null_base import NullBase
 from .spot_base import Spot, SpotFloating
+from .tidybot_base import TidybotBase
 
 BASE_MAPPING = {
     "RethinkMount": RethinkMount,
@@ -27,6 +28,7 @@ BASE_MAPPING = {
     "Spot": Spot,
     "SpotFloating": SpotFloating,
     "NullBase": NullBase,
+    "TidybotBase": TidybotBase,
 }
 
 ALL_BASES = BASE_MAPPING.keys()
