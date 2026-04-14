@@ -76,6 +76,78 @@ class SpotWithArmFloating(SpotArm):
         }
 
 
+class TidybotKinova(Kinova3):
+    """
+    TidyBot2 mobile base with Kinova Gen3 7-DOF arm and Robotiq 2F-85 gripper.
+    Follows the PandaOmron compositional pattern: inherits arm from Kinova3,
+    overrides base to TidybotBase and gripper to Robotiq2F85Gripper.
+    """
+
+    @property
+    def default_base(self):
+        return "TidybotBase"
+
+    @property
+    def default_arms(self):
+        return {"right": "Kinova3"}
+
+    @property
+    def default_gripper(self):
+        return {"right": "Robotiq2F85Gripper"}
+
+    @property
+    def default_controller_config(self):
+        return {"right": "default_tidybotkinova"}
+
+    @property
+    def init_qpos(self):
+        # Gen3 home configuration from homer tidybot keyframe
+        return np.array([0.0, 0.26179939, 3.14159265, -2.26892803,
+                         0.0, 0.95993109, 1.57079633])
+
+    @property
+    def base_xpos_offset(self):
+        return {
+            "bins": (-0.5, -0.1, 0),
+            "empty": (-0.6, 0, 0),
+            "table": lambda table_length: (-0.16 - table_length / 2, 0, 0),
+        }
+
+
+
+class TidybotYam(YamArm):
+    """
+    TidyBot2 mobile base with YAM 6-DOF arm and integrated parallel-jaw gripper.
+    Follows the PandaOmron compositional pattern: inherits arm from YamArm,
+    overrides base to TidybotBase.
+    """
+
+    @property
+    def default_base(self):
+        return "TidybotBase"
+
+    @property
+    def default_arms(self):
+        return {"right": "YamArm"}
+
+    @property
+    def default_controller_config(self):
+        return {"right": "default_tidybotyam"}
+
+    @property
+    def init_qpos(self):
+        # YAM arm home (6 DOF only; inline gripper excluded from arm DOFs)
+        return np.array([0.0, 1.047, 1.047, 0.0, 0.0, 0.0])
+
+    @property
+    def base_xpos_offset(self):
+        return {
+            "bins": (-0.5, -0.1, 0),
+            "empty": (-0.6, 0, 0),
+            "table": lambda table_length: (-0.16 - table_length / 2, 0, 0),
+        }
+
+
 class PandaDexRH(Panda):
     @property
     def default_gripper(self):

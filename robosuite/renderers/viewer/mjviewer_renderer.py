@@ -40,12 +40,13 @@ class MjviewerRenderer:
                 self.viewer.cam.azimuth = self.camera_config["azimuth"]
                 self.viewer.cam.elevation = self.camera_config["elevation"]
 
-            if self.camera_id is not None:
-                if self.camera_id >= 0:
-                    self.viewer.cam.type = 2
-                    self.viewer.cam.fixedcamid = self.camera_id
-                else:
-                    self.viewer.cam.type = 0
+        # Apply camera every frame so set_camera() takes effect immediately.
+        if self.camera_id is not None:
+            if self.camera_id >= 0:
+                self.viewer.cam.type = 2
+                self.viewer.cam.fixedcamid = self.camera_id
+            else:
+                self.viewer.cam.type = 0
 
         self.viewer.sync()
 
