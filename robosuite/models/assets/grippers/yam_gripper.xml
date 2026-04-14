@@ -1,0 +1,96 @@
+<mujoco model="yam_gripper">
+    <!--
+      YAM integrated parallel-jaw gripper.
+      Extracted from the YAM arm XML. Finger positions are in the link_6 frame
+      (the original homer frame). The root body offset maps from right_hand to link_6.
+    -->
+
+    <asset>
+        <material name="yam_gripper_black" rgba="0.25 0.25 0.25 1"/>
+        <mesh name="yam_left_finger" file="meshes/yam_gripper/left_finger.stl"/>
+        <mesh name="yam_left_finger_pad" file="meshes/yam_gripper/left_finger_pad.stl"/>
+        <mesh name="yam_right_finger" file="meshes/yam_gripper/right_finger.stl"/>
+        <mesh name="yam_right_finger_pad" file="meshes/yam_gripper/right_finger_pad.stl"/>
+    </asset>
+
+    <equality>
+        <joint joint1="left_finger_joint" joint2="right_finger_joint" polycoef="0 -1 0 0 0"/>
+    </equality>
+
+    <actuator>
+        <position name="gripper_finger_joint" joint="left_finger_joint"
+                  ctrlrange="0.0 0.041" kp="500" kv="20"/>
+    </actuator>
+
+    <worldbody>
+        <!-- Root body: offset from right_hand back to link_6 origin so finger
+             positions match the original homer coordinates exactly. -->
+        <body name="yam_gripper_base" pos="0 0 -0.1347" quat="0.707107 0 0 0.707107">
+            <site name="ft_frame" pos="0 0 0.1347" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1"/>
+
+            <!-- EEF site at the pinch point (same as original pinch_site in link_6 frame) -->
+            <body name="eef" pos="0 0 0.1347" quat="1 0 0 -1">
+                <site name="grip_site" pos="0 0 0" size="0.01 0.01 0.01" rgba="1 0 0 0.5" type="sphere" group="1"/>
+                <site name="ee_x" pos="0.1 0 0" size="0.005 .1" quat="0.707105 0 0.707108 0" rgba="1 0 0 0" type="cylinder" group="1"/>
+                <site name="ee_y" pos="0 0.1 0" size="0.005 .1" quat="0.707105 0.707108 0 0" rgba="0 1 0 0" type="cylinder" group="1"/>
+                <site name="ee_z" pos="0 0 0.1" size="0.005 .1" quat="1 0 0 0" rgba="0 0 1 0" type="cylinder" group="1"/>
+                <site name="grip_site_cylinder" pos="0 0 0" size="0.005 10" rgba="0 1 0 0.3" type="cylinder" group="1"/>
+            </body>
+
+            <!-- Left finger: positions exactly from homer tidybot_yam_cube.xml relative to link_6 -->
+            <body name="link_left_finger" pos="-0.037 0.0392 0.0605" quat="1 0 1 0">
+                <inertial pos="-0.0192995 -0.0365902 0.039774" quat="0.757351 0.568898 -0.3199 0.0"
+                    mass="0.118" diaginertia="0.000159084 0.000154909 4.63655e-05"/>
+                <joint name="left_finger_joint" type="slide" axis="0 0 1" armature="0.1" frictionloss="0.1" range="-0.00205 0.037524"/>
+                <geom type="mesh" contype="0" conaffinity="0" density="0" group="1" material="yam_gripper_black"
+                    pos="0.171097 -0.203301 0.037" quat="1 -1 -1 -1" mesh="yam_left_finger" name="left_finger_visual"/>
+                <geom type="mesh" contype="0" conaffinity="0" density="0" group="1" material="yam_gripper_black"
+                    pos="0.171097 -0.203301 0.037" quat="1 -1 -1 -1" mesh="yam_left_finger_pad" name="left_finger_pad_visual"/>
+                <body name="lf_rot" quat="1 -1 -1 1" pos="0.0 -0.0392 0.037">
+                    <geom group="0" type="capsule" size="0.01 0.03" pos="0.0 -0.02 0.012" quat="1 0 1 0"
+                        rgba="0.38 0.49 0.78 1" name="left_finger_collision1"/>
+                    <geom group="0" type="capsule" size="0.01 0.02" pos="-0.02 -0.01 0.032" quat="1 0 2.5 0"
+                        rgba="0.38 0.49 0.78 1" name="left_finger_collision2"/>
+                    <body name="lf_down" quat="1 0 0 0" pos="-0.044 0.0 0.0">
+                        <geom group="0" type="capsule" size="0.01 0.01" pos="0.0 -0.020 0.012" quat="1 -0.1 0 0"
+                            rgba="0.38 0.49 0.78 1" friction="2.0" solimp="0.95 0.99 0.001" solref="0.004 1"
+                            priority="1" name="left_fingerpad_collision"/>
+                        <geom type="box" size="0.014 0.005 0.022" pos="0 0.004 0.06" rgba="0.5 0.6 0.9 1"
+                            friction="2.0" solimp="0.95 0.99 0.001" solref="0.004 1" priority="1"
+                            name="left_fingerpad_box"/>
+                    </body>
+                </body>
+            </body>
+
+            <!-- Right finger: positions exactly from homer tidybot_yam_cube.xml relative to link_6 -->
+            <body name="link_right_finger" pos="0.037 -0.0392 0.0605" quat="1 0 1 0">
+                <inertial pos="-0.0192995 0.0365902 -0.039774" quat="-0.757351 0.568898 -0.3199 0"
+                    mass="0.118" diaginertia="0.000159084 0.000154909 4.63655e-05"/>
+                <joint name="right_finger_joint" type="slide" axis="0 0 1" armature="0.1" frictionloss="0.1" range="-0.037524 0.00205"/>
+                <geom type="mesh" contype="0" conaffinity="0" density="0" group="1" material="yam_gripper_black"
+                    pos="0.171097 -0.124901 -0.037" quat="1 -1 -1 -1" mesh="yam_right_finger" name="right_finger_visual"/>
+                <geom type="mesh" contype="0" conaffinity="0" density="0" group="1" material="yam_gripper_black"
+                    pos="0.171097 -0.124901 -0.037" quat="1 -1 -1 -1" mesh="yam_right_finger_pad" name="right_finger_pad_visual"/>
+                <body name="rf_rot" quat="1 1 -1 -1" pos="0.0 0.0392 -0.037">
+                    <geom group="0" type="capsule" size="0.01 0.03" pos="0.0 -0.02 0.012" quat="1 0 1 0"
+                        rgba="0.38 0.49 0.78 1" name="right_finger_collision1"/>
+                    <geom group="0" type="capsule" size="0.01 0.02" pos="0.02 -0.01 0.032" quat="1 0 -2.5 0"
+                        rgba="0.38 0.49 0.78 1" name="right_finger_collision2"/>
+                    <body name="rf_down" quat="1 0 0 0" pos="0.044 0.0 0.0">
+                        <geom group="0" type="capsule" size="0.01 0.01" pos="0.0 -0.020 0.012" quat="1 -0.1 0 0"
+                            rgba="0.38 0.49 0.78 1" friction="2.0" solimp="0.95 0.99 0.001" solref="0.004 1"
+                            priority="1" name="right_fingerpad_collision"/>
+                        <geom type="box" size="0.014 0.005 0.022" pos="0 0.004 0.06" rgba="0.5 0.6 0.9 1"
+                            friction="2.0" solimp="0.95 0.99 0.001" solref="0.004 1" priority="1"
+                            name="right_fingerpad_box"/>
+                    </body>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+
+    <sensor>
+        <force name="force_ee" site="ft_frame"/>
+        <torque name="torque_ee" site="ft_frame"/>
+    </sensor>
+</mujoco>
