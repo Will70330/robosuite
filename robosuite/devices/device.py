@@ -177,7 +177,8 @@ class Device(metaclass=abc.ABCMeta):
 
         if hasattr(robot, "torso") and robot.torso is not None:
             # only support single joint torso for now
-            if self.env.robots[0].composite_controller.part_controllers["torso"].joint_dim == 1:
+            part_controllers = self.env.robots[0].composite_controller.part_controllers
+            if "torso" in part_controllers and part_controllers["torso"].joint_dim == 1:
                 ac_dict["torso"] = self.get_torso_action(robot, device_torso_input)
 
         # populate action dict items for arm and grippers
@@ -218,7 +219,7 @@ class Device(metaclass=abc.ABCMeta):
                 "delta": norm_delta,
                 "abs": abs_action,
             }
-        elif robot.composite_controller_config["type"] in ["WHOLE_BODY_MINK_IK", "HYBRID_WHOLE_BODY_MINK_IK"]:
+        elif robot.composite_controller_config["type"] in ["WHOLE_BODY_MINK_IK", "HYBRID_WHOLE_BODY_MINK_IK", "HOMER_WBC"]:
             ref_frame = self.env.robots[0].composite_controller.composite_controller_specific_config.get(
                 "ik_input_ref_frame", "world"
             )
