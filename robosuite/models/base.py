@@ -220,38 +220,70 @@ class MujocoXML(object):
         """
         # Create nested dict to return
         default_dic = {}
-        # Parse the default tag accordingly
-        for cls in default:
-            default_dic[cls.get("class")] = {child.tag: child for child in cls}
+
+        def _collect(element):
+            """Recursively collect all default classes, including nested childclasses."""
+            for cls in element:
+                cls_name = cls.get("class")
+                if cls_name is None:
+                    continue
+                # Map tag → element for non-default children (the actual attribute specs)
+                default_dic[cls_name] = {
+                    child.tag: child for child in cls if child.tag != "default"
+                }
+                # Recurse into nested <default> children
+                _collect(cls)
+
+        _collect(default)
         return default_dic
 
-    def _replace_defaults_inline(self, default_dic, root=None):
+    def _replace_defaults_inline(self, default_dic, root=None, implicit_class=None):
         """
         Utility method to replace all default class attributes recursively in the XML tree starting from @root
-        with the corresponding defaults in @default_dic if they are not explicitly specified for ta given element.
+        with the corresponding defaults in @default_dic if they are not explicitly specified for a given element.
+
+        Handles both:
+          class="X"      — apply defaults from class X to this element.
+          childclass="X" — MuJoCo attribute that sets the implicit default class for all descendant
+                           elements that don't specify their own class.  Since robosuite removes the
+                           entire <default> block before handing the XML to MuJoCo, we must resolve
+                           childclass propagation ourselves here.
 
         Args:
-            root (ET.Element): Root of the xml element tree to start recursively replacing defaults. Only is used by
-                recursive calls
-            default_dic (dict): Nested dictionary, where each default class name is mapped to its own dict mapping
-                element tag names (e.g.: geom, site, etc.) to the set of default attributes for that tag type
+            root (ET.Element): Root of the xml element tree to start recursively replacing defaults.
+                Only used by recursive calls.
+            default_dic (dict): Nested dictionary, where each default class name is mapped to its own
+                dict mapping element tag names (e.g.: geom, site, etc.) to the default ET.Element for
+                that tag type.
+            implicit_class (str or None): Default class inherited from an ancestor's childclass attribute.
         """
         # If root is None, this is the top level call -- replace root with self.root
         if root is None:
             root = self.root
-        # Check this current element if it contains any class elements
+
+        # Resolve explicit class="X" — takes priority over implicit_class from an ancestor childclass.
         cls_name = root.attrib.pop("class", None)
-        if cls_name is not None:
-            # If the tag for this element is contained in our default dic, we add any defaults that are not
-            # explicitly specified in this
-            tag_attrs = default_dic[cls_name].get(root.tag, None)
+        effective_class = cls_name if cls_name is not None else implicit_class
+
+        if effective_class is not None:
+            tag_attrs = default_dic.get(effective_class, {}).get(root.tag, None)
             if tag_attrs is not None:
                 for k, v in tag_attrs.items():
                     if root.get(k, None) is None:
                         root.set(k, v)
+
+        # childclass="X" sets the implicit class for all descendant elements.
+        # Pop it (so MuJoCo doesn't see a reference to a now-missing default class)
+        # and pass it down as implicit_class to children.
+        child_implicit = root.attrib.pop("childclass", None)
+        if child_implicit is None:
+            child_implicit = implicit_class  # propagate ancestor's implicit class
+
         # Loop through all child elements
         for child in root:
-            self._replace_defaults_inline(default_dic=default_dic, root=child)
+            self._replace_defaults_inline(
+                default_dic=default_dic, root=child, implicit_class=child_implicit
+            )
 
     @property
     def name(self):
